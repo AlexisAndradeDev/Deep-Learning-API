@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/4.1/ref/settings/
 """
 
 from pathlib import Path
+from django.core.files.storage import FileSystemStorage
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -31,7 +32,9 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    'rest_framework',
     'dl_models',
+    'datasets',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -123,6 +126,14 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-MEDIA_ROOT = BASE_DIR / 'uploads'
+MEDIA_ROOT = BASE_DIR / 'media'
 
 MEDIA_URL = '/user-media/'
+
+# Private storage
+PRIVATE_STORAGE_ROOT = BASE_DIR / 'private'
+PRIVATE_STORAGE = FileSystemStorage(location=PRIVATE_STORAGE_ROOT)
+
+DATASETS_ROOT = PRIVATE_STORAGE_ROOT / 'datasets'
+MODELS_ROOT = PRIVATE_STORAGE_ROOT / 'models'
+
