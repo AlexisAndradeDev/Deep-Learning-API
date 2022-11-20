@@ -1,3 +1,4 @@
 *.lock
 Pipfile
 __pycache__
+/dl_api/private
