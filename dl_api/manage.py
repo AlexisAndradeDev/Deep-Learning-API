@@ -4,6 +4,12 @@ import os
 import sys
 
 
+def validate_environment(ENVS, env, command):
+    assert env in ENVS, f'Environment \'{env}\' is not valid. Define a system variable DJANGO_ENV and set it to: {ENVS}'
+    # test env must be used for test command
+    if command == "test" and env != "test":
+        raise AssertionError(f'Environment \'{env}\' is not valid for \'{command}\' command. Switch to test environment.')
+
 def main():
     """Run administrative tasks."""
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'dl_api.settings')
@@ -16,7 +22,6 @@ def main():
             "forget to activate a virtual environment?"
         ) from exc
 
-    # check if environment is valid
     try:
         from dl_api.settings import ENVS
     except:
@@ -26,20 +31,22 @@ def main():
             "in the original repository."
         )
 
-    env_name = os.environ.get('DJANGO_ENV', None)
-    assert env_name in ENVS, f'Environment \'{env_name}\' is not valid. Define a system variable DJANGO_ENV and set it to: {ENVS}'
+    # check if environment is valid
+    user_env = os.environ.get('DJANGO_ENV', None)
+    command = sys.argv[1]
+    validate_environment(ENVS, user_env, command)
 
-    print(f'Environment: {env_name}')
+    print(f'Environment: {user_env}')
 
     # execute command
-    if sys.argv[1] == 'migrate':
+    if command == 'migrate':
         # migrate all envs
         from dl_api.settings import ENVS
         for env in ENVS:
             os.environ.setdefault('DJANGO_ENV', env)
             execute_from_command_line(sys.argv)
             print(f'Environment \'{env}\' migrated.')
-        os.environ.setdefault('DJANGO_ENV', env_name)
+        os.environ.setdefault('DJANGO_ENV', user_env)
 
     else:
         execute_from_command_line(sys.argv)

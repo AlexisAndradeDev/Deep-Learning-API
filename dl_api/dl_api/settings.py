@@ -1,7 +1,7 @@
 import os
 # define a system variable called DJANGO_ENV and set it to the
 # environment you want
-env_name = os.environ.get('DJANGO_ENV', 'dev')
+env_name = os.environ.get('DJANGO_ENV', None)
 
 ENVS = ['deployment', 'dev', 'test']
 
