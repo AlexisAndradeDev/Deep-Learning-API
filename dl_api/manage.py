@@ -7,7 +7,8 @@ import sys
 def validate_environment(ENVS, env, command):
     assert env in ENVS, f'Environment \'{env}\' is not valid. Define a system variable DJANGO_ENV and set it to: {ENVS}'
     # test env must be used for test command
-    assert command == "test" and env == "test", f'Environment \'{env}\' is not valid for \'{command}\' command. Switch to test environment.'
+    if command == "test" and env != "test":
+        raise AssertionError(f'Environment \'{env}\' is not valid for \'{command}\' command. Switch to test environment.')
 
 def main():
     """Run administrative tasks."""
