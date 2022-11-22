@@ -31,6 +31,7 @@ class DatasetCreate(APIView):
 
         dataset.save()
         serializer.validated_data['public_id'] = dataset.public_id
+        serializer.validated_data['create_time'] = dataset.create_time
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 class DatasetGet(RetrieveAPIView):
