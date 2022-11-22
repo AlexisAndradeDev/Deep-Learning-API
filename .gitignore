@@ -154,4 +154,3 @@ cython_debug/
 
 *.lock
 Pipfile
-/dl_api/private/*
