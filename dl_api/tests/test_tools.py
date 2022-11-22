@@ -1,13 +1,13 @@
 from datetime import datetime, date
 from django.conf import settings
 
-def setUpCatsAndDogsDatasetTest(testCase):
+def set_up_cats_and_dogs_dataset_test(testCase):
     testCase.dataset_name = 'Cats and dogs'
     testCase.dataset_public_id = ''
     testCase.dataset_root_dir = settings.BASE_DIR / 'testing/data/cats_and_dogs/'
     testCase.classes = {'cats': {}, 'dogs': {}}
 
-def dateIsToday(date_str):
+def date_is_today(date_str):
     """
     Args:
         date_str (str): Date.

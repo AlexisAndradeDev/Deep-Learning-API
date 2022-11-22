@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 """Django's command-line utility for administrative tasks."""
+import shutil
 import os
 import sys
 
@@ -23,12 +24,12 @@ def main():
         ) from exc
 
     try:
-        from dl_api.settings import ENVS
-    except:
+        from dl_api.settings import ENVS, PRIVATE_STORAGE_ROOT
+    except ImportError as e:
         raise ImportError(
             "Could not import ENVS from settings module. "
             "Make sure you follow the 'settings' and 'config' structure used "
-            "in the original repository."
+            f"in the original repository. Exception message: {e}"
         )
 
     # check if environment is valid
@@ -47,6 +48,20 @@ def main():
             execute_from_command_line(sys.argv)
             print(f'Environment \'{env}\' migrated.')
         os.environ.setdefault('DJANGO_ENV', user_env)
+    
+    elif command == 'test':
+        # create private storage for test env
+        os.mkdir(PRIVATE_STORAGE_ROOT)
+        os.mkdir(PRIVATE_STORAGE_ROOT / 'datasets')
+        os.mkdir(PRIVATE_STORAGE_ROOT / 'models')
+
+        try:
+            execute_from_command_line(sys.argv)
+        except Exception as e:
+            pass
+        finally:
+            # delete test private storage
+            shutil.rmtree(PRIVATE_STORAGE_ROOT)
 
     else:
         execute_from_command_line(sys.argv)
