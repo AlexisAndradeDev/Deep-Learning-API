@@ -14,3 +14,5 @@ DATABASES = {
         'NAME': BASE_DIR / '/tests/test_db.sqlite3',
     }
 }
+
+PRIVATE_STORAGE_ROOT = BASE_DIR / 'tests/private_storage'

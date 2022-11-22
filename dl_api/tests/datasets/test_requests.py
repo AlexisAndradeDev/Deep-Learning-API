@@ -1,9 +1,9 @@
 from django.test import TestCase
-from .. import tools
+from .. import test_tools
 
 class CatsAndDogsTests(TestCase):
     def setUp(self):
-        tools.setUpCatsAndDogsDatasetTest(self)
+        test_tools.set_up_cats_and_dogs_dataset_test(self)
 
     def test_DatasetCreate(self):
         response = self.client.post(f'/datasets/create', data={
@@ -16,7 +16,7 @@ class CatsAndDogsTests(TestCase):
 
         create_time_str = response.json().get('create_time')
         self.assertIsInstance(create_time_str, str)
-        self.assertTrue(tools.dateIsToday(create_time_str))
+        self.assertTrue(test_tools.date_is_today(create_time_str))
 
         self.dataset_public_id = response.json().get('public_id')
 
@@ -34,8 +34,8 @@ class CatsAndDogsTests(TestCase):
 
         create_time_str = response.json().get('create_time')
         self.assertIsInstance(create_time_str, str)
-        self.assertTrue(tools.dateIsToday(create_time_str))
+        self.assertTrue(test_tools.date_is_today(create_time_str))
 
         last_modified_str = response.json().get('last_modified')
         self.assertIsInstance(last_modified_str, str)
-        self.assertTrue(tools.dateIsToday(last_modified_str))
+        self.assertTrue(test_tools.date_is_today(last_modified_str))
