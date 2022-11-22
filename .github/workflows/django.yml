@@ -26,7 +26,8 @@ jobs:
     - name: Install Dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install -r requirements.txt
+        pip install -r requirements-linux.txt
+        sudo apt-get install libmagic1
     - name: Unit Tests
       run: |
         export DJANGO_ENV=test
