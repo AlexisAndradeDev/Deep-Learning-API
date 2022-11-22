@@ -1,4 +1,3 @@
-from modules.files_management import delete_dir
 from datetime import datetime, date
 from django.conf import settings
 
