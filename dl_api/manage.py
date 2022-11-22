@@ -24,11 +24,11 @@ def main():
 
     try:
         from dl_api.settings import ENVS
-    except:
+    except Exception as e:
         raise ImportError(
             "Could not import ENVS from settings module. "
             "Make sure you follow the 'settings' and 'config' structure used "
-            "in the original repository."
+            f"in the original repository. Exception message: {e}"
         )
 
     # check if environment is valid
