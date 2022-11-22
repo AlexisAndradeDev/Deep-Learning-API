@@ -31,5 +31,6 @@ jobs:
         pip install python-magic
     - name: Unit Tests
       run: |
-        export DJANGO_ENV=test
-        python dl_api/manage.py test
+        cd dl_api
+        export DJANGO_ENV=test6
+        python manage.py test
