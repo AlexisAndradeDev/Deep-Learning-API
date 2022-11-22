@@ -32,5 +32,5 @@ jobs:
     - name: Unit Tests
       run: |
         cd dl_api
-        export DJANGO_ENV=test6
+        export DJANGO_ENV=test
         python manage.py test
