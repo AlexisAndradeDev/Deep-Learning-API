@@ -28,7 +28,7 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements-linux.txt
         sudo apt-get install libmagic1
-        sudo apt-get install python-magic
+        pip install python-magic
     - name: Unit Tests
       run: |
         export DJANGO_ENV=test
