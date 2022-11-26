@@ -156,3 +156,4 @@ cython_debug/
 Pipfile
 dl_api/private/datasets/*
 dl_api/private/models/*
+dl_api/db.sqlite3
