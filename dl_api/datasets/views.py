@@ -44,12 +44,13 @@ class DatasetDelete(APIView):
         try:
             dataset = Dataset.objects.get(public_id=public_id)
         except Dataset.DoesNotExist as e:
-            return Response(status=status.HTTP_404_NOT_FOUND)
+            return Response(data={'error': f'Resource \'{public_id}\' not found.'}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
+            print(dataset.path)
             delete_dataset_files(dataset.path)
         except ValueError as e:
-            return Response(data={'error': 'Dataset root dir not found'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response(data={'error': 'Dataset root dir not found.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
         dataset.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
@@ -67,14 +68,14 @@ class DatasetCreateClass(APIView):
             return Response(status=status.HTTP_404_NOT_FOUND)
         
         if dataset.classes.get(class_name) != None:
-            return Response(data={'error': ['Class name already exists']}, status=status.HTTP_409_CONFLICT)
+            return Response(data={'error': 'Class name already exists'}, status=status.HTTP_409_CONFLICT)
         
         class_dir = dataset.path + f'/{class_name}'
 
         try:
             os.mkdir(class_dir)
         except IOError as e:
-            return Response(data={'error': [f'Root folder for class {class_name} already exists']}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response(data={'error': f'Root folder for class {class_name} already exists'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
         # load classes list from JSON field
         classes = dataset.classes
@@ -98,12 +99,12 @@ class DatasetUploadToClassSet(APIView):
         try:
             dataset = Dataset.objects.get(public_id=public_id)
         except Dataset.DoesNotExist as e:
-            return Response(data={'error': [f'Dataset with public id {public_id} does not exist']}, status=status.HTTP_404_NOT_FOUND)
+            return Response(data={'error': f'Dataset with public id {public_id} does not exist'}, status=status.HTTP_404_NOT_FOUND)
 
         classes = dataset.classes
         class_ = classes.get(class_name)
         if not class_:
-            return Response(data={'error': [f'Class {class_name} does not exist']}, status=status.HTTP_404_NOT_FOUND)
+            return Response(data={'error': f'Class {class_name} does not exist'}, status=status.HTTP_404_NOT_FOUND)
 
         sets = class_.get('sets')
         set_ = sets.get(set_name)
@@ -111,7 +112,7 @@ class DatasetUploadToClassSet(APIView):
         try:
             images = request.FILES.getlist('images')
         except MultiValueDictKeyError as e:
-            return Response(data={'images': ['Dataset images files are required']}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(data={'images': 'Dataset images files are required'}, status=status.HTTP_400_BAD_REQUEST)
 
         class_dir = dataset.path + f'/{class_name}'
         set_dir = class_dir + f'/{set_name}'
@@ -124,11 +125,11 @@ class DatasetUploadToClassSet(APIView):
         images_num = 0
         for file in images:
             if file.size > 4*1024*1024:
-                return Response(data={'error': ['Image file too large (limit: 4 megabytes)']}, status=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE)
+                return Response(data={'error': 'Image file too large (limit: 4 megabytes)'}, status=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE)
             
             mime = magic.from_buffer(file.read(), mime=True)
             if mime not in ['image/png', 'image/jpeg']:
-                return Response(data={'error': ['Upload a JPEG or PNG image']}, status=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE)
+                return Response(data={'error': 'Upload a JPEG or PNG image'}, status=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE)
             
             type_ = mime.split('/')[-1].upper()
 
@@ -146,7 +147,7 @@ class DatasetUploadToClassSet(APIView):
                     # even with an exception, Pillow sometimes writes a file
                     # that contains partial content
                     os.remove(file_path)
-                return Response(data={'error': [f'Image {file.name} could not be written. The image file may contain partial or invalid data. All the images before {file.name} were written.']}, status=status.HTTP_422_CONFLICT)
+                return Response(data={'error': f'Image {file.name} could not be written. The image file may contain partial or invalid data. All the images before {file.name} were written.'}, status=status.HTTP_422_CONFLICT)
         
         set_ = {'images_num': images_num}
         sets[set_name] = set_
