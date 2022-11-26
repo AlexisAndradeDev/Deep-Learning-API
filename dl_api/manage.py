@@ -109,21 +109,20 @@ def main():
 
     os.environ['DJANGO_SETTINGS_MODULE'] = f'config.{active_env}'
 
-    match active_env:
-        case 'dev':
-            import config.dev as settings
-        case 'deployment':
-            import config.deployment as settings
-        case 'integration_test':
-            import config.integration_test as settings
-        case 'unit_test':
-            import config.unit_test as settings
-        case other:
-            raise AssertionError(
-                f"Environment {active_env} settings could not be imported. "
-                "Make sure you follow the 'settings' and 'config' structure used "
-                f"in the original repository. Exception message: {e}"
-            )
+    if active_env == 'dev':
+        import config.dev as settings
+    elif active_env == 'deployment':
+        import config.deployment as settings
+    elif active_env == 'integration_test':
+        import config.integration_test as settings
+    elif active_env == 'unit_test':
+        import config.unit_test as settings
+    else:
+        raise AssertionError(
+            f"Environment {active_env} settings could not be imported. "
+            "Make sure you follow the 'settings' and 'config' structure used "
+            f"in the original repository. Exception message: {e}"
+        )
 
     try:
         from django.core.management import execute_from_command_line
