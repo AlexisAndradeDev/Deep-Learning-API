@@ -121,7 +121,7 @@ def main():
         raise AssertionError(
             f"Environment {active_env} settings could not be imported. "
             "Make sure you follow the 'settings' and 'config' structure used "
-            f"in the original repository. Exception message: {e}"
+            f"in the original repository."
         )
 
     try:
