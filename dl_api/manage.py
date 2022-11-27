@@ -17,6 +17,32 @@ def create_private_storage(PRIVATE_STORAGE_ROOT):
 def delete_private_storage(PRIVATE_STORAGE_ROOT):
     shutil.rmtree(PRIVATE_STORAGE_ROOT)
 
+def migrate_env_database(env):
+    """
+    Migrates the database of an environment.
+
+    Args:
+        env (str): Name of the environment.
+    """    
+    # copy current environment variables and change env name
+    env_variables = dict(os.environ)
+    env_variables['DJANGO_ENV'] = env
+
+    # migrate env database
+    process = subprocess.Popen(
+        f'{sys.executable} manage.py migrate',
+        env=env_variables,
+    )
+    process.communicate()
+    print(f'Environment \'{env}\' migrated.')
+
+def delete_database(database_path):
+    os.remove(database_path)
+
+def setup_server(env, private_storage_root):
+    create_private_storage(private_storage_root)
+    migrate_env_database(env)
+
 def validate_environment(system_env, command_env, command):
     assert system_env in ENVS, f'Environment \'{system_env}\' is not valid. Define a system variable DJANGO_ENV and set it to: {ENVS}'
 
@@ -139,16 +165,7 @@ def main():
         if command == 'migrate-all':
             # migrate all envs
             for env in ENVS:
-                # copy current environment variables and change env name
-                env_variables = dict(os.environ)
-                env_variables['DJANGO_ENV'] = env
-
-                process = subprocess.Popen(
-                    f'{sys.executable} manage.py migrate',
-                    env=env_variables,
-                )
-                process.communicate()
-                print(f'Environment \'{env}\' migrated.')
+                migrate_env_database(env)
         else:
             execute_from_command_line(argv)
 
@@ -161,24 +178,23 @@ def main():
     elif active_env == 'integration_test':
         if command == 'runserver':
             if os.environ.get('RUN_MAIN') != 'true':
-                # when this command is run, the integration test environment
-                # is setup (e.g. create private storage); then, the runserver 
-                # command is run; finally, some files and dirs are deleted
+                # when the runserver command is executed, the integration test 
+                # environment is setup; then, the runserver command is run again; 
+                # finally, some files and dirs are deleted
                 try:
-                    if len(argv) > 2:
-                        raise Exception(f'Command \'{command}\' can\'t have additional parameters.')
+                    setup_server(active_env, settings.PRIVATE_STORAGE_ROOT)
 
-                    create_private_storage(settings.PRIVATE_STORAGE_ROOT)
-
-                    # run integration test server
+                    # run server
                     execute_from_command_line(argv)
                 finally:
+                    # exit server
                     delete_private_storage(settings.PRIVATE_STORAGE_ROOT)
+                    database_path = settings.DATABASES.get('default').get('NAME')
+                    delete_database(database_path)
             else:
                 # Django runs the runserver command twice, in the second run (the
                 # one that executes 'runserver') RUN_MAIN system variable is set to 
                 # 'true' by Django.
-                argv[COMMAND] = 'runserver'
                 execute_from_command_line(argv)
 
         elif command in ['migrate']:
