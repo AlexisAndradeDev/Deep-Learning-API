@@ -47,7 +47,6 @@ class DatasetDelete(APIView):
             return Response(data={'error': f'Resource \'{public_id}\' not found.'}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            print(dataset.path)
             delete_dataset_files(dataset.path)
         except ValueError as e:
             return Response(data={'error': 'Dataset root dir not found.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -112,7 +111,9 @@ class DatasetUploadToClassSet(APIView):
         try:
             images = request.FILES.getlist('images')
         except MultiValueDictKeyError as e:
-            return Response(data={'images': 'Dataset images files are required'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(data={'error': 'Dataset images files are required'}, status=status.HTTP_400_BAD_REQUEST)
+        if not images:
+            return Response(data={'error': '\'images\' files list is empty. Make sure you sent correctly the files in the response.'}, status=status.HTTP_400_BAD_REQUEST)
 
         class_dir = dataset.path + f'/{class_name}'
         set_dir = class_dir + f'/{set_name}'
