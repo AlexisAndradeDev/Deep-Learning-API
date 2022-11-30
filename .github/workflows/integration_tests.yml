@@ -49,5 +49,8 @@ jobs:
     - name: Run Integrations Tests
       run: |
         cd dl_api
+        dir
+        cd tests
+        dir
         export DJANGO_ENV=integration_test
         python manage.py runserver & cd ../integration_tests && echo "Waiting for server to run on 8000 (timeout: 15 seconds)..." && timeout 15 sh -c 'until nc -z localhost 8000; do sleep 1; done' && newman run postman/cats_and_dogs.postman_collection.json -e deep-learning-api-env.postman_environment.json
