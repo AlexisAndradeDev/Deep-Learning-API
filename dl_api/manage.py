@@ -43,17 +43,14 @@ def setup_server(env, private_storage_root):
     create_private_storage(private_storage_root)
     migrate_env_database(env)
 
-def validate_environment(system_env, command_env, command):
+def validate_environment(system_env, command_env, active_env, command):
     assert system_env in ENVS, f'Environment \'{system_env}\' is not valid. Define a system variable DJANGO_ENV and set it to: {ENVS}'
 
     if command_env and system_env not in ['dev'] and command_env != system_env:
         raise AssertionError(f'Environment \'{system_env}\' can\'t execute other environments.')
 
-    if command == 'test' and system_env != 'unit_test':
-        raise AssertionError(f'Environment \'{system_env}\' is not valid for \'{command}\' command. Switch to unit_test environment.')
-
-    if command == 'integration-test-server' and system_env != 'integration_test':
-        raise AssertionError(f'Environment \'{system_env}\' is not valid for \'{command}\' command. Switch to integration_test environment.')
+    if command == 'test' and active_env != 'unit_test':
+        raise AssertionError(f'Environment \'{system_env}\' is not valid for \'{command}\' command. Use unit_test environment.')
 
 def get_env_specified_in_command_line(argv):
     """
@@ -124,12 +121,12 @@ def main():
 
     command = argv[1]
 
-    validate_environment(system_env, command_env, command)
-    
     if command_env:
         active_env = command_env
     else:
         active_env = system_env
+
+    validate_environment(system_env, command_env, active_env, command)
 
     os.environ['DJANGO_SETTINGS_MODULE'] = f'config.{active_env}'
 
@@ -177,8 +174,8 @@ def main():
         if command == 'runserver':
             if os.environ.get('RUN_MAIN') != 'true':
                 # when the runserver command is executed, the integration test 
-                # environment is setup; then, the runserver command is run again; 
-                # finally, some files and dirs are deleted
+                # environment is setup; then, the runserver command is run again
+                # and the server starts running; finally, some files and dirs are deleted
                 try:
                     setup_server(active_env, settings.PRIVATE_STORAGE_ROOT)
 
