@@ -58,8 +58,6 @@ def validate_environment(system_env, command_env, command):
 def get_env_specified_in_command_line(argv):
     """
     Returns the environment name specified by the user in the command line.
-    Deletes the elements in the command line arguments list that
-    are related to this argument.
 
     Args:
         argv (list of str): Command line arguments.
