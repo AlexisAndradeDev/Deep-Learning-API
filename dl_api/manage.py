@@ -17,7 +17,7 @@ def create_private_storage(PRIVATE_STORAGE_ROOT):
 def delete_private_storage(PRIVATE_STORAGE_ROOT):
     shutil.rmtree(PRIVATE_STORAGE_ROOT)
 
-def migrate_env_database(env):
+def migrate_env_database(env, base_dir):
     """
     Migrates the database of an environment.
 
@@ -29,19 +29,23 @@ def migrate_env_database(env):
     env_variables['DJANGO_ENV'] = env
 
     # migrate env database
+    python_path = sys.executable.replace('\\', '/')
+    base_dir_str = str(base_dir.as_posix())
+
     process = subprocess.Popen(
-        f'{sys.executable} manage.py migrate',
+        f'"{python_path}" "{base_dir_str}/manage.py" migrate', 
         env=env_variables,
     )
+
     process.communicate()
     print(f'Environment \'{env}\' migrated.')
 
 def delete_database(database_path):
     os.remove(database_path)
 
-def setup_server(env, private_storage_root):
+def setup_server(env, private_storage_root, base_dir):
     create_private_storage(private_storage_root)
-    migrate_env_database(env)
+    migrate_env_database(env, base_dir)
 
 def validate_environment(system_env, command_env, active_env, command):
     assert system_env in ENVS, f'Environment \'{system_env}\' is not valid. Define a system variable DJANGO_ENV and set it to: {ENVS}'
@@ -160,7 +164,7 @@ def main():
         if command == 'migrate-all':
             # migrate all envs
             for env in ENVS:
-                migrate_env_database(env)
+                migrate_env_database(env, settings.BASE_DIR)
         else:
             execute_from_command_line(argv)
 
@@ -177,7 +181,7 @@ def main():
                 # environment is setup; then, the runserver command is run again
                 # and the server starts running; finally, some files and dirs are deleted
                 try:
-                    setup_server(active_env, settings.PRIVATE_STORAGE_ROOT)
+                    setup_server(active_env, settings.PRIVATE_STORAGE_ROOT, settings.BASE_DIR)
 
                     # run server
                     execute_from_command_line(argv)
