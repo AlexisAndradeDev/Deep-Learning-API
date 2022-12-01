@@ -17,23 +17,33 @@ def create_private_storage(PRIVATE_STORAGE_ROOT):
 def delete_private_storage(PRIVATE_STORAGE_ROOT):
     shutil.rmtree(PRIVATE_STORAGE_ROOT)
 
-def migrate_env_database(env, base_dir):
+def migrate_env_database(env, base_dir, use_python_path):
     """
     Migrates the database of an environment.
 
     Args:
         env (str): Name of the environment.
-    """    
+        use_python_path (bool): If true, other Python scripts will be
+            executed using the complete Python path 
+            (e.g. /usr/.virtualenvs/env/Scripts/python.exe).
+
+            If false, they will be executed using just the 'python' command.
+        base_dir (Path): Base directory path, e.g. base_dir/manage.py
+    """
     # copy current environment variables and change env name
     env_variables = dict(os.environ)
     env_variables['DJANGO_ENV'] = env
 
     # migrate env database
-    python_path = sys.executable.replace('\\', '/')
+    if use_python_path:
+        # use complete Python path, e.g. /usr/.virtualenvs/env/Scripts/python.exe
+        python_command = sys.executable.replace('\\', '/')
+    else:
+        python_command = 'python'
     base_dir_str = str(base_dir.as_posix())
 
     process = subprocess.Popen(
-        f'"{python_path}" "{base_dir_str}/manage.py" migrate', 
+        f'"{python_command}" "{base_dir_str}/manage.py" migrate', 
         env=env_variables,
     )
 
@@ -43,9 +53,9 @@ def migrate_env_database(env, base_dir):
 def delete_database(database_path):
     os.remove(database_path)
 
-def setup_server(env, private_storage_root, base_dir):
+def setup_server(env, private_storage_root, base_dir, use_python_path):
     create_private_storage(private_storage_root)
-    migrate_env_database(env, base_dir)
+    migrate_env_database(env, base_dir, use_python_path)
 
 def validate_environment(system_env, command_env, active_env, command):
     assert system_env in ENVS, f'Environment \'{system_env}\' is not valid. Define a system variable DJANGO_ENV and set it to: {ENVS}'
@@ -64,12 +74,12 @@ def get_env_specified_in_command_line(argv):
         argv (list of str): Command line arguments.
 
     Raises:
-        Exception: If the entered environment is not in ENVS.
+        Exception: If the argument doesn't have a value. 
+            If the entered environment is not in ENVS.
 
     Returns:
         command_env: Name of the environment.
-        argument_index: Index in the command line args of the argument 
-            that specifies the name of the environment.
+        argument_index: Index in the command line args of this argument.
     """    
     command_env = None
     argument_index = None
@@ -81,6 +91,41 @@ def get_env_specified_in_command_line(argv):
             raise Exception(f'Argument \'--env\' must have a value: {ENVS}')
         assert command_env in ENVS, f'Environment \'{command_env}\' is not valid. Set \'--env\' to: {ENVS}'
     return command_env, argument_index
+
+def get_use_python_path_from_command_line(argv):
+    """Returns a boolean variable that determines if other Python scripts
+    will be executed using the complete Python path (e.g. /usr/.virtualenvs/env/Scripts/python.exe).
+    
+    Args:
+        argv (list of str): Command line arguments.
+    
+    Raises:
+        Exception: If the argument doesn't have a value. 
+            If the entered value for this argument is not 'true' or 'false'.
+    
+    Returns:
+        use_python_path (bool): If true, other Python scripts will be
+            executed using the complete Python path 
+            (e.g. /usr/.virtualenvs/env/Scripts/python.exe).
+
+            If false, they will be executed using just the 'python' command.
+
+            By default it's True.
+        argument_index: Index in the command line args of this argument.
+    """
+    use_python_path = True
+    argument_index = None
+    if '--use-python-path' in argv:
+        try:
+            argument_index = argv.index('--use-python-path')
+            use_python_path_str = argv[argument_index+1]
+        except Exception as e:
+            raise Exception(f'Argument \'--use-python-path\' must have a value: {["true", "false"]}')
+        assert use_python_path_str in ['true', 'false'], f'Value \'{use_python_path_str}\' is not valid. Set \'--use-python-path\' to: {["true", "false"]}'
+
+        use_python_path = True if use_python_path_str == 'true' else False
+
+    return use_python_path, argument_index
 
 def delete_personalized_argument(argv, argument_index):
     """
@@ -106,13 +151,22 @@ def get_personalized_arguments(argv):
         argv (list of str): Command line arguments.
 
     Returns:
-        command_env: Name of the environment.
+        command_env (str): Name of the environment.
+        use_python_path (bool): If true, other Python scripts will be
+            executed using the complete Python path 
+            (e.g. /usr/.virtualenvs/env/Scripts/python.exe).
+
+            If false, they will be executed using just the 'python' command.
     """
     command_env, argument_index = get_env_specified_in_command_line(argv)
     if argument_index != None:
         delete_personalized_argument(argv, argument_index)
+    
+    use_python_path, argument_index = get_use_python_path_from_command_line(argv)
+    if argument_index != None:
+        delete_personalized_argument(argv, argument_index)
 
-    return command_env
+    return command_env, use_python_path
 
 def main():
     """Run administrative tasks."""
@@ -121,7 +175,7 @@ def main():
     system_env = os.environ.get('DJANGO_ENV', None)
     assert system_env in ENVS, f'\'DJANGO_ENV\' system variable must have a value: {ENVS}'
 
-    command_env = get_personalized_arguments(argv)
+    command_env, use_python_path = get_personalized_arguments(argv)
 
     command = argv[1]
 
@@ -164,7 +218,7 @@ def main():
         if command == 'migrate-all':
             # migrate all envs
             for env in ENVS:
-                migrate_env_database(env, settings.BASE_DIR)
+                migrate_env_database(env, settings.BASE_DIR, use_python_path)
         else:
             execute_from_command_line(argv)
 
@@ -181,7 +235,7 @@ def main():
                 # environment is setup; then, the runserver command is run again
                 # and the server starts running; finally, some files and dirs are deleted
                 try:
-                    setup_server(active_env, settings.PRIVATE_STORAGE_ROOT, settings.BASE_DIR)
+                    setup_server(active_env, settings.PRIVATE_STORAGE_ROOT, settings.BASE_DIR, use_python_path)
 
                     # run server
                     execute_from_command_line(argv)
