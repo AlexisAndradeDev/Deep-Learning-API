@@ -193,16 +193,16 @@
 							"description": "Images of the data subset",
 							"type": "file",
 							"src": [
-								"data/cats_and_dogs/train/cats/cat.0.jpg",
-								"data/cats_and_dogs/train/cats/cat.1.jpg",
-								"data/cats_and_dogs/train/cats/cat.2.jpg",
-								"data/cats_and_dogs/train/cats/cat.3.jpg",
-								"data/cats_and_dogs/train/cats/cat.4.jpg",
-								"data/cats_and_dogs/train/cats/cat.5.jpg",
-								"data/cats_and_dogs/train/cats/cat.6.jpg",
-								"data/cats_and_dogs/train/cats/cat.7.jpg",
-								"data/cats_and_dogs/train/cats/cat.8.jpg",
-								"data/cats_and_dogs/train/cats/cat.9.jpg"
+								"./data/cats_and_dogs/train/cats/cat.0.jpg",
+								"./data/cats_and_dogs/train/cats/cat.1.jpg",
+								"./data/cats_and_dogs/train/cats/cat.2.jpg",
+								"./data/cats_and_dogs/train/cats/cat.3.jpg",
+								"./data/cats_and_dogs/train/cats/cat.4.jpg",
+								"./data/cats_and_dogs/train/cats/cat.5.jpg",
+								"./data/cats_and_dogs/train/cats/cat.6.jpg",
+								"./data/cats_and_dogs/train/cats/cat.7.jpg",
+								"./data/cats_and_dogs/train/cats/cat.8.jpg",
+								"./data/cats_and_dogs/train/cats/cat.9.jpg"
 							]
 						},
 						{
@@ -271,16 +271,16 @@
 							"description": "Images of the data subset",
 							"type": "file",
 							"src": [
-								"data/cats_and_dogs/train/cats/cat.0.jpg",
-								"data/cats_and_dogs/train/cats/cat.1.jpg",
-								"data/cats_and_dogs/train/cats/cat.2.jpg",
-								"data/cats_and_dogs/train/cats/cat.3.jpg",
-								"data/cats_and_dogs/train/cats/cat.4.jpg",
-								"data/cats_and_dogs/train/cats/cat.5.jpg",
-								"data/cats_and_dogs/train/cats/cat.6.jpg",
-								"data/cats_and_dogs/train/cats/cat.7.jpg",
-								"data/cats_and_dogs/train/cats/cat.8.jpg",
-								"data/cats_and_dogs/train/cats/cat.9.jpg"
+								"./data/cats_and_dogs/train/cats/cat.0.jpg",
+								"./data/cats_and_dogs/train/cats/cat.1.jpg",
+								"./data/cats_and_dogs/train/cats/cat.2.jpg",
+								"./data/cats_and_dogs/train/cats/cat.3.jpg",
+								"./data/cats_and_dogs/train/cats/cat.4.jpg",
+								"./data/cats_and_dogs/train/cats/cat.5.jpg",
+								"./data/cats_and_dogs/train/cats/cat.6.jpg",
+								"./data/cats_and_dogs/train/cats/cat.7.jpg",
+								"./data/cats_and_dogs/train/cats/cat.8.jpg",
+								"./data/cats_and_dogs/train/cats/cat.9.jpg"
 							]
 						},
 						{
