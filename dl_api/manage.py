@@ -42,12 +42,11 @@ def migrate_env_database(env, base_dir, use_python_path):
         python_command = 'python'
     base_dir_str = str(base_dir.as_posix())
 
-    process = subprocess.Popen(
+    process = subprocess.run(
         f'"{python_command}" "{base_dir_str}/manage.py" migrate', 
         env=env_variables,
     )
 
-    process.communicate()
     print(f'Environment \'{env}\' migrated.')
 
 def delete_database(database_path):
