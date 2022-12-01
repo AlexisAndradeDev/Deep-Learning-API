@@ -17,34 +17,68 @@ def create_private_storage(PRIVATE_STORAGE_ROOT):
 def delete_private_storage(PRIVATE_STORAGE_ROOT):
     shutil.rmtree(PRIVATE_STORAGE_ROOT)
 
-def validate_environment(system_env, command_env, command):
+def migrate_env_database(env, base_dir, use_python_path):
+    """
+    Migrates the database of an environment.
+
+    Args:
+        env (str): Name of the environment.
+        use_python_path (bool): If true, other Python scripts will be
+            executed using the complete Python path 
+            (e.g. /usr/.virtualenvs/env/Scripts/python.exe).
+
+            If false, they will be executed using just the 'python' command.
+        base_dir (Path): Base directory path, e.g. base_dir/manage.py
+    """
+    # copy current environment variables and change env name
+    env_variables = dict(os.environ)
+    env_variables['DJANGO_ENV'] = env
+
+    # migrate env database
+    if use_python_path:
+        # use complete Python path, e.g. /usr/.virtualenvs/env/Scripts/python.exe
+        python_command = sys.executable.replace('\\', '/')
+    else:
+        python_command = 'python'
+    base_dir_str = str(base_dir.as_posix())
+
+    process = subprocess.run(
+        [f'{python_command}', f'{base_dir_str}/manage.py', f'migrate'],
+        env=env_variables,
+    )
+
+    print(f'Environment \'{env}\' migrated.')
+
+def delete_database(database_path):
+    os.remove(database_path)
+
+def setup_server(env, private_storage_root, base_dir, use_python_path):
+    create_private_storage(private_storage_root)
+    migrate_env_database(env, base_dir, use_python_path)
+
+def validate_environment(system_env, command_env, active_env, command):
     assert system_env in ENVS, f'Environment \'{system_env}\' is not valid. Define a system variable DJANGO_ENV and set it to: {ENVS}'
 
     if command_env and system_env not in ['dev'] and command_env != system_env:
         raise AssertionError(f'Environment \'{system_env}\' can\'t execute other environments.')
 
-    if command == 'test' and system_env != 'unit_test':
-        raise AssertionError(f'Environment \'{system_env}\' is not valid for \'{command}\' command. Switch to unit_test environment.')
-
-    if command == 'integration-test-server' and system_env != 'integration_test':
-        raise AssertionError(f'Environment \'{system_env}\' is not valid for \'{command}\' command. Switch to integration_test environment.')
+    if command == 'test' and active_env != 'unit_test':
+        raise AssertionError(f'Environment \'{system_env}\' is not valid for \'{command}\' command. Use unit_test environment.')
 
 def get_env_specified_in_command_line(argv):
     """
     Returns the environment name specified by the user in the command line.
-    Deletes the elements in the command line arguments list that
-    are related to this argument.
 
     Args:
         argv (list of str): Command line arguments.
 
     Raises:
-        Exception: If the entered environment is not in ENVS.
+        Exception: If the argument doesn't have a value. 
+            If the entered environment is not in ENVS.
 
     Returns:
         command_env: Name of the environment.
-        argument_index: Index in the command line args of the argument 
-            that specifies the name of the environment.
+        argument_index: Index in the command line args of this argument.
     """    
     command_env = None
     argument_index = None
@@ -56,6 +90,41 @@ def get_env_specified_in_command_line(argv):
             raise Exception(f'Argument \'--env\' must have a value: {ENVS}')
         assert command_env in ENVS, f'Environment \'{command_env}\' is not valid. Set \'--env\' to: {ENVS}'
     return command_env, argument_index
+
+def get_use_python_path_from_command_line(argv):
+    """Returns a boolean variable that determines if other Python scripts
+    will be executed using the complete Python path (e.g. /usr/.virtualenvs/env/Scripts/python.exe).
+    
+    Args:
+        argv (list of str): Command line arguments.
+    
+    Raises:
+        Exception: If the argument doesn't have a value. 
+            If the entered value for this argument is not 'true' or 'false'.
+    
+    Returns:
+        use_python_path (bool): If true, other Python scripts will be
+            executed using the complete Python path 
+            (e.g. /usr/.virtualenvs/env/Scripts/python.exe).
+
+            If false, they will be executed using just the 'python' command.
+
+            By default it's True.
+        argument_index: Index in the command line args of this argument.
+    """
+    use_python_path = True
+    argument_index = None
+    if '--use-python-path' in argv:
+        try:
+            argument_index = argv.index('--use-python-path')
+            use_python_path_str = argv[argument_index+1]
+        except Exception as e:
+            raise Exception(f'Argument \'--use-python-path\' must have a value: {["true", "false"]}')
+        assert use_python_path_str in ['true', 'false'], f'Value \'{use_python_path_str}\' is not valid. Set \'--use-python-path\' to: {["true", "false"]}'
+
+        use_python_path = True if use_python_path_str == 'true' else False
+
+    return use_python_path, argument_index
 
 def delete_personalized_argument(argv, argument_index):
     """
@@ -81,13 +150,22 @@ def get_personalized_arguments(argv):
         argv (list of str): Command line arguments.
 
     Returns:
-        command_env: Name of the environment.
+        command_env (str): Name of the environment.
+        use_python_path (bool): If true, other Python scripts will be
+            executed using the complete Python path 
+            (e.g. /usr/.virtualenvs/env/Scripts/python.exe).
+
+            If false, they will be executed using just the 'python' command.
     """
     command_env, argument_index = get_env_specified_in_command_line(argv)
     if argument_index != None:
         delete_personalized_argument(argv, argument_index)
+    
+    use_python_path, argument_index = get_use_python_path_from_command_line(argv)
+    if argument_index != None:
+        delete_personalized_argument(argv, argument_index)
 
-    return command_env
+    return command_env, use_python_path
 
 def main():
     """Run administrative tasks."""
@@ -96,16 +174,16 @@ def main():
     system_env = os.environ.get('DJANGO_ENV', None)
     assert system_env in ENVS, f'\'DJANGO_ENV\' system variable must have a value: {ENVS}'
 
-    command_env = get_personalized_arguments(argv)
+    command_env, use_python_path = get_personalized_arguments(argv)
 
     command = argv[1]
 
-    validate_environment(system_env, command_env, command)
-    
     if command_env:
         active_env = command_env
     else:
         active_env = system_env
+
+    validate_environment(system_env, command_env, active_env, command)
 
     os.environ['DJANGO_SETTINGS_MODULE'] = f'config.{active_env}'
 
@@ -121,7 +199,7 @@ def main():
         raise AssertionError(
             f"Environment {active_env} settings could not be imported. "
             "Make sure you follow the 'settings' and 'config' structure used "
-            f"in the original repository. Exception message: {e}"
+            f"in the original repository."
         )
 
     try:
@@ -139,16 +217,7 @@ def main():
         if command == 'migrate-all':
             # migrate all envs
             for env in ENVS:
-                # copy current environment variables and change env name
-                env_variables = dict(os.environ)
-                env_variables['DJANGO_ENV'] = env
-
-                process = subprocess.Popen(
-                    f'{sys.executable} manage.py migrate',
-                    env=env_variables,
-                )
-                process.communicate()
-                print(f'Environment \'{env}\' migrated.')
+                migrate_env_database(env, settings.BASE_DIR, use_python_path)
         else:
             execute_from_command_line(argv)
 
@@ -161,24 +230,23 @@ def main():
     elif active_env == 'integration_test':
         if command == 'runserver':
             if os.environ.get('RUN_MAIN') != 'true':
-                # when this command is run, the integration test environment
-                # is setup (e.g. create private storage); then, the runserver 
-                # command is run; finally, some files and dirs are deleted
+                # when the runserver command is executed, the integration test 
+                # environment is setup; then, the runserver command is run again
+                # and the server starts running; finally, some files and dirs are deleted
                 try:
-                    if len(argv) > 2:
-                        raise Exception(f'Command \'{command}\' can\'t have additional parameters.')
+                    setup_server(active_env, settings.PRIVATE_STORAGE_ROOT, settings.BASE_DIR, use_python_path)
 
-                    create_private_storage(settings.PRIVATE_STORAGE_ROOT)
-
-                    # run integration test server
+                    # run server
                     execute_from_command_line(argv)
                 finally:
+                    # exit server
                     delete_private_storage(settings.PRIVATE_STORAGE_ROOT)
+                    database_path = settings.DATABASES.get('default').get('NAME')
+                    delete_database(database_path)
             else:
                 # Django runs the runserver command twice, in the second run (the
                 # one that executes 'runserver') RUN_MAIN system variable is set to 
                 # 'true' by Django.
-                argv[COMMAND] = 'runserver'
                 execute_from_command_line(argv)
 
         elif command in ['migrate']:

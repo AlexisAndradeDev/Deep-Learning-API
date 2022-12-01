@@ -1,0 +1,427 @@
+{
+	"info": {
+		"_postman_id": "70b1a2e2-ab41-4e5a-aa8f-9243a8e5cb7d",
+		"name": "Cats and Dogs",
+		"description": "E2E test. From dataset creation to model execution.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "19040229"
+	},
+	"item": [
+		{
+			"name": "Create dataset",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 201\", function () {\r",
+							"    pm.response.to.have.status(201)\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Content-Type is application/json\", function () {\r",
+							"    pm.response.to.be.header(\"Content-Type\", \"application/json\");\r",
+							"})\r",
+							"\r",
+							"body = pm.response.json();\r",
+							"pm.collectionVariables.set(\"public_id\", body.public_id);\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"name\": \"{{name}}\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{host}}/datasets/create",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"datasets",
+						"create"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create cat class",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function() {\r",
+							"    pm.response.to.have.status(200);\r",
+							"    test_success = 1;\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Dataset contains class\", function() {\r",
+							"    let classes = pm.response.json()[\"classes\"];\r",
+							"    let class_ = classes[\"cat\"];\r",
+							"    pm.expect(class_).to.not.be.undefined;\r",
+							"    // check if class is a dict\r",
+							"    pm.expect(class_.constructor).equals(Object);\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"class_name\": \"cat\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{host}}/datasets/create-class/{{public_id}}",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"datasets",
+						"create-class",
+						"{{public_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create dog class",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function() {\r",
+							"    pm.response.to.have.status(200);\r",
+							"    test_success = 1;\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Dataset contains class\", function() {\r",
+							"    let classes = pm.response.json()[\"classes\"];\r",
+							"    let class_ = classes[\"dog\"];\r",
+							"    pm.expect(class_).to.not.be.undefined;\r",
+							"    // check if class is a dict\r",
+							"    pm.expect(class_.constructor).equals(Object);\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"class_name\": \"dog\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{host}}/datasets/create-class/{{public_id}}",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"datasets",
+						"create-class",
+						"{{public_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Upload subset to cat class",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Class contains created subset\", function() {\r",
+							"    let classes = pm.response.json()[\"classes\"];\r",
+							"    let class_ = classes[\"cat\"];\r",
+							"    let subset = class_[\"sets\"][\"train\"];\r",
+							"    pm.expect(subset).to.not.be.undefined;\r",
+							"    // check if subset is a dict\r",
+							"    pm.expect(subset.constructor).equals(Object);\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "images",
+							"description": "Images of the data subset",
+							"type": "file",
+							"src": [
+								"./data/cats_and_dogs/train/cats/cat.0.jpg",
+								"./data/cats_and_dogs/train/cats/cat.1.jpg",
+								"./data/cats_and_dogs/train/cats/cat.2.jpg",
+								"./data/cats_and_dogs/train/cats/cat.3.jpg",
+								"./data/cats_and_dogs/train/cats/cat.4.jpg",
+								"./data/cats_and_dogs/train/cats/cat.5.jpg",
+								"./data/cats_and_dogs/train/cats/cat.6.jpg",
+								"./data/cats_and_dogs/train/cats/cat.7.jpg",
+								"./data/cats_and_dogs/train/cats/cat.8.jpg",
+								"./data/cats_and_dogs/train/cats/cat.9.jpg"
+							]
+						},
+						{
+							"key": "class_name",
+							"value": "cat",
+							"contentType": "application/json",
+							"description": "Name of the class of the images, e.g. \"cat\"",
+							"type": "text"
+						},
+						{
+							"key": "set_name",
+							"value": "train",
+							"contentType": "application/json",
+							"description": "Name of the data subset, e.g. \"train\"",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{host}}/datasets/upload-set/{{public_id}}",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"datasets",
+						"upload-set",
+						"{{public_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Upload subset to dog class",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Class contains created subset\", function() {\r",
+							"    let classes = pm.response.json()[\"classes\"];\r",
+							"    let class_ = classes[\"dog\"];\r",
+							"    let subset = class_[\"sets\"][\"train\"];\r",
+							"    pm.expect(subset).to.not.be.undefined;\r",
+							"    // check if subset is a dict\r",
+							"    pm.expect(subset.constructor).equals(Object);\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "images",
+							"description": "Images of the data subset",
+							"type": "file",
+							"src": [
+								"./data/cats_and_dogs/train/cats/cat.0.jpg",
+								"./data/cats_and_dogs/train/cats/cat.1.jpg",
+								"./data/cats_and_dogs/train/cats/cat.2.jpg",
+								"./data/cats_and_dogs/train/cats/cat.3.jpg",
+								"./data/cats_and_dogs/train/cats/cat.4.jpg",
+								"./data/cats_and_dogs/train/cats/cat.5.jpg",
+								"./data/cats_and_dogs/train/cats/cat.6.jpg",
+								"./data/cats_and_dogs/train/cats/cat.7.jpg",
+								"./data/cats_and_dogs/train/cats/cat.8.jpg",
+								"./data/cats_and_dogs/train/cats/cat.9.jpg"
+							]
+						},
+						{
+							"key": "class_name",
+							"value": "dog",
+							"contentType": "application/json",
+							"description": "Name of the class of the images, e.g. \"cat\"",
+							"type": "text"
+						},
+						{
+							"key": "set_name",
+							"value": "train",
+							"contentType": "application/json",
+							"description": "Name of the data subset, e.g. \"train\"",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "{{host}}/datasets/upload-set/{{public_id}}",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"datasets",
+						"upload-set",
+						"{{public_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get dataset",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function() {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Content-Type is application/json\", function() {\r",
+							"    pm.response.to.be.header(\"Content-Type\", \"application/json\");\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{host}}/datasets/get/{{public_id}}",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"datasets",
+						"get",
+						"{{public_id}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete dataset",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 204\", function() {\r",
+							"    pm.response.to.have.status(204);\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{host}}/datasets/delete/{{public_id}}",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"datasets",
+						"delete",
+						"{{public_id}}"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "public_id",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "name",
+			"value": "Cats and Dogs",
+			"type": "string"
+		}
+	]
+}
