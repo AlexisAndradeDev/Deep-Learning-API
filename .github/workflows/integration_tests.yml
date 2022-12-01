@@ -34,18 +34,13 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
         architecture: "x64"
-    
-    - name: Set up Python virtual environment
-      run: |
-©       python -m pip install --upgrade pip
-        pip install pipenv
-        pipenv shell
 
     - name: Install Python Dependencies
       run: |
-        pipenv install -r requirements-linux.txt
+        python -m pip install --upgrade pip
+        pip install -r requirements-linux.txt
         sudo apt-get install libmagic1
-        pipenv install python-magic
+        pip install python-magic
       
     - name: Install Newman dependency
       run: |
