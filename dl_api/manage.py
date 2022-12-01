@@ -42,10 +42,8 @@ def migrate_env_database(env, base_dir, use_python_path):
         python_command = 'python'
     base_dir_str = str(base_dir.as_posix())
 
-    print(os.path.isfile(f"{base_dir_str}/manage.py"))
-
     process = subprocess.run(
-        f'"{python_command}" "{base_dir_str}/manage.py" migrate', 
+        [f'{python_command}', f'{base_dir_str}/manage.py', f'migrate'],
         env=env_variables,
     )
 
