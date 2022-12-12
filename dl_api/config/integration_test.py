@@ -15,4 +15,4 @@ DATABASES = {
     }
 }
 
-PRIVATE_STORAGE_ROOT = BASE_DIR / 'tests/integration/private_storage'
+PRIVATE_STORAGE_ROOT = BASE_DIR / 'tests' / 'integration' / 'private_storage'

@@ -1,7 +1,7 @@
 from django.db import models
 from django.core.validators import MinLengthValidator
 
-from modules.tools import generate_unique_id
+from modules.files_management import delete_dir
 
 # Create your models here.
 
@@ -17,5 +17,5 @@ class Dataset(models.Model):
         return f'{self.name} - {self.public_id}'
 
     def delete(self):
-        # ! DELETE DATASET IMAGES
+        delete_dir(self.path)
         super(Dataset, self).delete()

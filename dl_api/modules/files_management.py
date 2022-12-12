@@ -1,8 +1,8 @@
 import os
 import shutil
 
-def delete_dataset_files(dataset_root_dir):
-    if os.path.isdir(dataset_root_dir):
-        shutil.rmtree(dataset_root_dir)
+def delete_dir(dir_path):
+    if os.path.isdir(dir_path):
+        shutil.rmtree(dir_path)
     else:
-        raise ValueError(f'Path {dataset_root_dir} is not a directory')
+        raise ValueError(f'Path {dir_path} is not a directory')

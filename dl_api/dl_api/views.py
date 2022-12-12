@@ -1,6 +1,6 @@
 from django.http import JsonResponse
 
-def custom404(request, exception=None):
+def custom400(request, exception=None):
     return JsonResponse({
         'error': f'Bad request.',
         }, status=400,
