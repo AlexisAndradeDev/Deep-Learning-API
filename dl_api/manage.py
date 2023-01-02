@@ -53,8 +53,21 @@ def delete_database(database_path):
     os.remove(database_path)
 
 def setup_server(env, private_storage_root, base_dir, use_python_path):
+    print('Settings up server...')
+
+    if env in ['integration_test', 'unit_test'] and os.path.isdir(private_storage_root):
+        # clean private storage
+        print('Deleting existent private storage...')
+        delete_private_storage(private_storage_root)
+        print('Private storage deleted.')
+
+    print('Creating private storage...')
     create_private_storage(private_storage_root)
+    print('Private storage created.')
+
+    print('Creating database...')
     migrate_env_database(env, base_dir, use_python_path)
+    print('Database created.')
 
 def validate_environment(system_env, command_env, active_env, command):
     assert system_env in ENVS, f'Environment \'{system_env}\' is not valid. Define a system variable DJANGO_ENV and set it to: {ENVS}'
